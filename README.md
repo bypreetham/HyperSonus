@@ -2,26 +2,27 @@
 
 HyperSonus is a state-of-the-art Android music player designed for audiophiles who demand the highest possible audio fidelity. It bypasses conventional Android audio limitations through a custom-built native engine, offering true Bit-Perfect playback, advanced DAC integration, and a high-performance DSP pipeline.
 
-![HyperSonus Architecture](./architecture_vertical.png)
+![HyperSonus Architecture](./docs/hyper-architecture.png)
 
-## 🚀 Asynchronous Streaming Engine
+## Asynchronous Streaming Engine
 
 HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticated **Asynchronous Multi-Threaded Architecture**:
 
-1.  **JNI Bridge (native-lib.cpp)**: Acts as the high-speed gateway between the Kotlin `NativeHiResEngine` and the C++ core. It orchestrates life-cycle commands (play/pause/seek) and handles real-time callbacks for bit-perfect status and errors.
-2.  **HyperDecoder Thread**: A dedicated native thread running with real-time priority (`SCHED_FIFO`) and CPU affinity (pinned to a performance core). It handles all decoding (**libFLAC**, **FFmpeg**) and high-quality resampling (**libsoxr**) in isolation from the UI and output threads.
-3.  **Shared 768KB Jitter-Free Ring Buffer**: This is the heart of the engine. Both the **Bluetooth (Oboe/AAudio)** and **USB (UsbNativeStreamer)** pathways consume data from this **same buffer instance**. It acts as a unified producer-consumer bridge, ensuring that the `HyperDecoder` producer thread decouples perfectly from any output endpoint.
+1.  **JNI Bridge (native-lib.cpp)**: Acts as the high-speed gateway between the Kotlin `NativeHiResEngine` and the C++ core. It handles **FD (File Descriptor) mapping** via `/proc/self/fd/` and orchestrates real-time callbacks.
+2.  **HyperDecoder Thread**: A dedicated native thread running with **SCHED_FIFO Real-Time Priority** and **CPU core affinity** (pinned to Big cores) to eliminate context-switching jitter during heavy system load.
+3.  **Shared 3MB Jitter-Free Ring Buffer**: A high-capacity asynchronous bridge that decouples production from consumption. It provides a 2-second safety margin at 192kHz, ensuring glitch-free playback even during system-level interrupts.
 4.  **Path-Specific Optimization**:
-    *   **Bluetooth Pathway**: Pulls from the ring buffer into an Oboe stream, enforced at 48kHz with a 200ms "Jitter Guard" to align with native Android Bluetooth stacks.
-    *   **USB DAC Pathway**: Pulls from the ring buffer into a specialized Bulk/ISO streamer that communicates directly with the DAC, bypassing the Android Audio HAL entirely for Bit-Perfect transmission.
+    *   **Bluetooth/Shared Path**: Pulls from the ring buffer into an **Oboe (AAudio)** stream, routing through the Android AudioFlinger mixer.
+    *   **Exclusive USB Path (Kernel Bypass)**: Communicates directly with USB hardware via **usbfs ioctl** (`USBDEVFS_SUBMIT/REAP`). Bypasses the Android ALSA mixer entirely for true bit-perfect transmission.
+    *   **UAC2 Async Feedback Loop**: Actively monitors the USB DAC's hardware clock; uses an **Exponential Moving Average (EMA)** drift correction algorithm to adjust packet chunk sizes in real-time, matching the phone's output to the DAC's specific oscillator.
 
 
-## ⬇️ Download
+## Download
 You can download the latest compiled APK from the [Releases](https://github.com/happy77005/Hyperplay/releases/tag/v1.0.0) page.
 
 ---
 
-## 🚀 Core Philosophy: Bit-Perfect Audio & USB Exclusive Mode
+## Core Philosophy: Bit-Perfect Audio & USB Exclusive Mode
 
 Standard Android playback often resamples audio to 48kHz, degrading high-resolution source material. Hyperplay v2 introduces two high-fidelity paths:
 - **Bit-Perfect (Oboe/AAudio)**: Requests **Exclusive Mode** to bypass the system mixer while using standard Android audio drivers.
@@ -29,7 +30,7 @@ Standard Android playback often resamples audio to 48kHz, degrading high-resolut
 
 ---
 
-## 🛠 Architecture & Engineering
+## Architecture & Engineering
 
 ### 1. Multi-Engine Architecture
 Hyperplay provides a flexible abstraction layer via the `IAudioEngine` interface, allowing the app to switch between three distinct backends:
@@ -50,20 +51,22 @@ Hyperplay provides a flexible abstraction layer via the `IAudioEngine` interface
 
 ---
 
-## ✨ Advanced Features
+## Advanced Features
 
-### 🎧 Audiophile DSP Pipeline
+### Audiophile DSP Pipeline
+- **64-bit Double Precision Pipeline**: All DSP operations are performed in `double` (64-bit) precision to prevent rounding errors and preserve signal integrity before the final dithering stage.
 - **Bauer Stereophonic-to-Binaural (BS2B)**: High-quality cross-feed for headphones to reduce listening fatigue and simulate a speaker-like soundstage.
+- **Google Resonance 3D Audio**: High-fidelity spatial audio SDK integrated directly into the native DSP chain.
 - **10-Band Native Equalizer**: High-precision EQ (31Hz to 16kHz) available in the Native Hi-Res engine.
-- **Quantization & Dither**: TPDF Dither with noise shaping for transparent bit-depth reduction.
+- **Quantization & Dither**: TPDF Dither with noise-shaping for transparent bit-depth reduction.
 - **Safety Limiter**: Hard-clipping protection for the floating-point audio pipeline.
 - **Pre-Amp Boost**: Adjustable gain control to match different headphone sensitivities.
 
-### 📊 Real-Time Technical Insights
+### Real-Time Technical Insights
 - **Interactive Audio Pathway**: A visual map showing the journey of your audio from Source -> Decoder -> Resampler -> DSP -> Limiter -> Dither -> Output.
 - **Audiophile Technical Info**: Real-time display of engine type, output sample rate, channel count, and bit-perfect status.
 
-### 📁 Library & Playback
+### Library & Playback
 - **Gapless Playback**: Seamlessly transitions between tracks without silence.
 - **Folder-Based Navigation**: Robust folder picker and dedicated folder view for organized library browsing.
 - **Smart Song Caching**: Efficient library indexing that avoids redundant scans.
@@ -72,7 +75,7 @@ Hyperplay provides a flexible abstraction layer via the `IAudioEngine` interface
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 app/src/main/
@@ -90,7 +93,7 @@ app/src/main/
 
 ---
 
-## 🛠 Setup & Build Requirements
+## Setup & Build Requirements
 
 - **Android SDK**: 36 (Min SDK 26)
 - **NDK**: 25.x or later
@@ -110,7 +113,7 @@ HyperSonus is built upon the incredible work of the open-source community. We gr
 - **Resonance Audio**: Google's high-fidelity spatial audio SDK.
 - **[Shibata](https://github.com/shibatch/SSRC)**: High-order noise-shaping dithering algorithm used for high-fidelity bit-depth conversion.
 
-## 🔐 License & Proprietary Status
+## License & Proprietary Status
 
 **Proprietary License**: Free to use but no distribution and no code copying. All rights reserved.
 
@@ -120,6 +123,4 @@ The following core components of HyperSonus are strictly proprietary and protect
 - **USB Quirk Manager**: Specialized hardware-specific fixes for USB DACs.
 - **Architecture Plans**: All files within the `plan/` directory.
 
-## 📜 Credits & Third-Party Libraries
-...
 
