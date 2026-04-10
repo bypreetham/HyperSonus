@@ -2,7 +2,7 @@
 
 HyperSonus is a state-of-the-art Android music player designed for audiophiles who demand the highest possible audio fidelity. It bypasses conventional Android audio limitations through a custom-built native engine, offering true Bit-Perfect playback, advanced DAC integration, and a high-performance DSP pipeline.
 
-![HyperSonus Architecture](./docs/hyper-architecture.png)
+![HyperSonus Architecture](/hyper-architecture.png)
 
 ## Asynchronous Streaming Engine
 
