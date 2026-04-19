@@ -8,7 +8,7 @@ HyperSonus is a state-of-the-art Android music player designed for audiophiles w
 
 HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticated **Asynchronous Multi-Threaded Architecture**:
 
-1.  **JNI Bridge (native-lib.cpp)**: Acts as the high-speed gateway between the Kotlin `NativeHiResEngine` and the C++ core. It handles **FD (File Descriptor) mapping** via `/proc/self/fd/` and orchestrates real-time callbacks.
+1.  **JNI Bridge**: Acts as the high-speed gateway between the Kotlin `NativeHiResEngine` and the C++ core. It handles **FD (File Descriptor) mapping** orchestrates real-time callbacks.
 2.  **HyperDecoder Thread**: A dedicated native thread running with **SCHED_FIFO Real-Time Priority** and **CPU core affinity** (pinned to Big cores) to eliminate context-switching jitter during heavy system load.
 3.  **Shared 3MB Jitter-Free Ring Buffer**: A high-capacity asynchronous bridge that decouples production from consumption. It provides a 2-second safety margin at 192kHz, ensuring glitch-free playback even during system-level interrupts.
 4.  **Path-Specific Optimization**:
@@ -113,10 +113,5 @@ HyperSonus is built upon the incredible work of the open-source community. We gr
 
 **Proprietary License**: All rights reserved.
 
-The following core components of HyperSonus are strictly proprietary and protected under this license:
-- **Native Header Files**: All C++ `.h` files defining the engine's internal structure.
-- **JNI Layer**: The `native-lib.cpp` bridge and related JNI mappings.
-- **USB Quirk Manager**: Specialized hardware-specific fixes for USB DACs.
-- **Architecture Plans**: All files within the `plan/` directory.
-
+The following core components of HyperSonus are strictly proprietary and protected
 
