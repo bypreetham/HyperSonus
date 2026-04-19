@@ -13,12 +13,8 @@ HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticate
 3.  **Shared 3MB Jitter-Free Ring Buffer**: A high-capacity asynchronous bridge that decouples production from consumption. It provides a 2-second safety margin at 192kHz, ensuring glitch-free playback even during system-level interrupts.
 4.  **Path-Specific Optimization**:
     *   **Bluetooth/Shared Path**: Pulls from the ring buffer into an **Oboe (AAudio)** stream, routing through the Android AudioFlinger mixer.
-    *   **Exclusive USB Path (Kernel Bypass)**: Communicates directly with USB hardware via **usbfs ioctl** (`USBDEVFS_SUBMIT/REAP`). Bypasses the Android ALSA mixer entirely for true bit-perfect transmission.
+    *   **Exclusive USB Path**: Communicates directly with USB hardware. Bypasses the Android ALSA mixer entirely for true bit-perfect transmission.
     *   **UAC2 Async Feedback Loop**: Actively monitors the USB DAC's hardware clock; uses an **Exponential Moving Average (EMA)** drift correction algorithm to adjust packet chunk sizes in real-time, matching the phone's output to the DAC's specific oscillator.
-
-
-## Download
-You can download the latest compiled APK from the [Releases](https://github.com/happy77005/Hyperplay/releases/tag/v1.0.0) page.
 
 ---
 
@@ -115,7 +111,7 @@ HyperSonus is built upon the incredible work of the open-source community. We gr
 
 ## License & Proprietary Status
 
-**Proprietary License**: Free to use but no distribution and no code copying. All rights reserved.
+**Proprietary License**: All rights reserved.
 
 The following core components of HyperSonus are strictly proprietary and protected under this license:
 - **Native Header Files**: All C++ `.h` files defining the engine's internal structure.
