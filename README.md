@@ -9,8 +9,8 @@ Architecture:
 
 HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticated **Asynchronous Multi-Threaded Architecture**:
 
-1.  **JNI Bridge**: Acts as the high-speed gateway between the Kotlin `NativeHiResEngine` and the C++ core. It handles **FD (File Descriptor) mapping** orchestrates real-time callbacks.
-2.  **HyperDecoder Thread**: A dedicated native thread running with **SCHED_FIFO Real-Time Priority** and **CPU core affinity** (pinned to Big cores) to eliminate context-switching jitter during heavy system load.
+1.  **JNI Bridge**: Acts as the high-speed gateway between the Kotlin and the C++ core. It handles **FD (File Descriptor) mapping** orchestrates real-time callbacks.
+2.  **HyperDecoder Thread**: A dedicated native thread running with **Real-Time Priority** and **CPU core affinity** (pinned to Big cores) to eliminate context-switching jitter during heavy system load.
 3.  **Shared 3MB Jitter-Free Ring Buffer**: A high-capacity asynchronous bridge that decouples production from consumption. It provides a 2-second safety margin at 192kHz, ensuring glitch-free playback even during system-level interrupts.
 4.  **Path-Specific Optimization**:
     *   **Bluetooth/Shared Path**: Pulls from the ring buffer into an **Oboe (AAudio)** stream, routing through the Android AudioFlinger mixer.
@@ -44,7 +44,7 @@ Hyperplay provides a flexible abstraction layer via the `IAudioEngine` interface
 - **Oboe**: Google’s high-performance C++ library for low-latency audio.
 - **FFmpeg**: Powers the decoding of various formats (FLAC, ALAC, WAV, DSD) with high-precision resampling.
 - **SoX Resampler (libsoxr)**: High-quality resampling with configurable profiles (Standard, Extreme/VHQ, Auto).
-- **JNI Bridge**: A robust connectivity layer (`native-lib.cpp`) that enables real-time synchronization between the Kotlin service and the C++ engine.
+- **JNI Bridge**: A robust connectivity layer that enables real-time synchronization between the Kotlin service and the C++ engine.
 
 ---
 
@@ -72,31 +72,14 @@ Hyperplay provides a flexible abstraction layer via the `IAudioEngine` interface
 
 ---
 
-## Project Structure
-
-```text
-app/src/main/
-├── java/com/example/first/
-│   ├── engine/          # Audio engine abstractions (MediaPlayer, Native, USB Bulk)
-│   ├── usb/             # USB Exclusive mode, Volume Control, & Quirk Manager
-│   ├── MainActivity.kt  # UI orchestration & library scanning
-│   └── MusicService.kt  # Central playback & MediaSession hub
-├── cpp/
-│   ├── engine/          # C++ AudioEngine, DSP Pipeline, & USB Native Streamer
-│   ├── include/         # FFmpeg & SoX headers
-│   └── external/oboe/   # Oboe source code
-└── jniLibs/             # Pre-built FFmpeg/SoX binaries (.so) for arm64-v8a
-```
-
----
 
 ## Setup & Build Requirements
 
 - **Android SDK**: 36 (Min SDK 26)
 - **NDK**: 25.x or later
 - **CMake**: 3.22.1+
-- **FFmpeg**: Requires pre-built libraries placed in `app/src/main/jniLibs`.
-- **Oboe**: Included as a Git submodule/folder in `external/`.
+- **FFmpeg**: Requires pre-built libraries 
+- **Oboe**: Included as a Git submodule/folder
 
 ## 📜 Credits & Third-Party Libraries
 
@@ -107,7 +90,6 @@ HyperSonus is built upon the incredible work of the open-source community. We gr
 - **[libsoxr](https://sourceforge.net/projects/soxr/)**: The SoX Resampler library, providing high-quality sample rate conversion.
 - **[libFLAC](https://xiph.org/flac/)**: The reference implementation for the Free Lossless Audio Codec.
 - **[bs2b](https://bs2b.sourceforge.net/)**: The Bauer Stereophonic-to-Binaural library for fatigue-free headphone listening.
-- **Resonance Audio**: Google's high-fidelity spatial audio SDK.
 - **[Shibata](https://github.com/shibatch/SSRC)**: High-order noise-shaping dithering algorithm used for high-fidelity bit-depth conversion.
 
 ## License & Proprietary Status
