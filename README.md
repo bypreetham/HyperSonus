@@ -33,8 +33,11 @@ Hypersonus provides allowing the app to switch between three distinct backends:
 - **Advanced Bluetooth Detection**:  Identify high-quality codecs (LDAC, aptX HD, aptX Adaptive) and display real-time technical info (96kHz / 24-bit).
 
 ## 3. App Screenshots
-![Audio Pathway information](./pathway.png.jpg)
-![player page](./player.png.jpg)
+
+<p align="center">
+  <img src="./pathway.png.jpg" alt="Audio Pathway information" width="300"/>
+  <img src="./player.png.jpg" alt="player page" width="300"/>
+</p>
 
 ---
 ## Advanced Features
