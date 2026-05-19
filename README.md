@@ -24,13 +24,13 @@ Standard Android playback often resamples audio to 48kHz, degrading high-resolut
 ## Architecture & Engineering
 ### 1. Multi-Engine Architecture
 Hypersonus provides allowing the app to switch between three distinct backends:
-- **Native Hi-Res Engine**: A Custom C++ that handles 24-bit/32-bit audio decoding and low-latency output.
+- **Native Hi-Res Engine**: A Custom C++ Engine that handles 24-bit/32-bit audio decoding and low-latency output.
 - **USB Exclusive Engine**: Direct-to-hardware streaming engine for mission-critical audiophile listening.
 
 ### 2. Intelligent Device Discovery & Management
 - **USB DAC Probing**: Automatically detects connected USB DACs and probes their hardware-supported sample rates (achieved to 32 Bit 384kHz DoP).
 - **Device Manager**: A built-in database of hardware-specific fixes for DACs to ensure stable playback across various USB controller implementations.
-- **Advanced Bluetooth Detection**: Uses Hidden API reflection to identify high-quality codecs (LDAC, aptX HD, aptX Adaptive) and display real-time technical info (96kHz / 24-bit).
+- **Advanced Bluetooth Detection**:  Identify high-quality codecs (LDAC, aptX HD, aptX Adaptive) and display real-time technical info (96kHz / 24-bit).
 
 ## 3. App Screenshots
 ![Audio Pathway information](./pathway.png)
@@ -40,8 +40,8 @@ Hypersonus provides allowing the app to switch between three distinct backends:
 ## Advanced Features
 
 ### Audiophile DSP Pipeline
-- **64-bit Double Precision Pipeline**: All DSP operations are performed in `double` (64-bit) precision to prevent rounding errors and preserve signal integrity before the final dithering stage.
-- **10-Band Native Equalizer**: High-precision EQ (31Hz to 16kHz) available in the Native Hi-Res engine.
+- **64-bit Double Precision Pipeline**: All DSP operations are performed in 64-bit precision to prevent rounding errors and preserve signal integrity before the final dithering stage.
+- **10-Band Native Equalizer**: High-precision EQ available in the Native Hi-Res engine.
 - **Quantization & Dither**: TPDF Dither with noise-shaping for transparent bit-depth reduction.
 - **Safety Limiter**: Hard-clipping protection for the floating-point audio pipeline.
 - **Pre-Amp Boost**: Adjustable gain control to match different headphone sensitivities.
