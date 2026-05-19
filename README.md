@@ -59,11 +59,6 @@ Hypersonus provides allowing the app to switch between three distinct backends:
 
 ---
 
-## 📜 Credits & Third-Party Libraries
-HyperSonus is built upon the incredible work of the open-source community. We gratefully acknowledge the following libraries:
-- **[Oboe](https://github.com/google/oboe)**: Google's high-performance C++ library for low-latency audio on Android.
-- **[FFmpeg](https://ffmpeg.org/)**: The leading multimedia framework, used for high-precision decoding of FLAC, WAV, ALAC, and DSD.
-
 ## License & Proprietary Status
 **Proprietary License**: All rights reserved.
 
