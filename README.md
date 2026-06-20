@@ -16,9 +16,9 @@ HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticate
 ---
 
 ## Core Philosophy: Bit-Perfect Audio & USB Exclusive Mode
-Standard Android playback often resamples audio to 48kHz, degrading high-resolution source material. HyperSonus v2 introduces two high-fidelity paths:
+Standard Android playback often resamples audio to 48kHz, degrading high-resolution source material. HyperSonus v6 introduces two high-fidelity paths:
+- **USB Exclusive Mode (Bulk Engine)**: Built a custom USB driver that communicates directly with USB DACs bypassing the Android audio stack entirely for ultra-low jitter audio streaming.
 - **Bit-Perfect (Oboe/AAudio)**: Requests **Exclusive Mode** to bypass the system mixer while using standard Android audio drivers.
-- **USB Exclusive Mode (Bulk Engine)**: A specialized driver-less path that communicates directly with USB DACs bypassing the Android audio stack entirely for ultra-low jitter.
 
 ---
 ## Architecture & Engineering
