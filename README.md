@@ -4,7 +4,12 @@ HyperSonus is a Low level high quality Android music player designed for Music a
 
 # HyperSonus Technical Architecture
 
-This document provides a deep-dive into the "Silicon-to-UI" architecture of the HyperSonus audio engine. It details the custom kernel-bypass drivers, the 64-bit DSP pipeline, and the asynchronous feedback mechanisms used to achieve bit-perfect high-resolution audio.
+This document provides a deep-dive into the architecture of the HyperSonus audio. It details the custom kernel-bypass drivers, the 64-bit DSP pipeline, and the asynchronous feedback mechanisms used to achieve bit-perfect high-resolution audio.
+
+## Core Philosophy: Bit-Perfect Audio & USB Exclusive Mode
+Standard Android playback often resamples audio to 48kHz, degrading high-resolution source material. HyperSonus v6 introduces two high-fidelity paths:
+- **USB Exclusive Mode (Bulk Engine)**: Built a custom USB driver that communicates directly with USB DACs bypassing the Android audio stack entirely for ultra-low jitter audio streaming.
+- **Bit-Perfect (Oboe/AAudio)**: Requests **Exclusive Mode** to bypass the system mixer while using standard Android audio drivers.
 
 ## System Architecture Diagram
 The following diagram illustrates the data flow from the Android Application layer down to the USB DAC hardware, highlighting both the Shared (Bluetooth) and Exclusive (USB) pathways.
@@ -14,12 +19,16 @@ The following diagram illustrates the data flow from the Android Application lay
 
 ## Core Technical Pillars
 
-### 1. High-Fidelity DSP Chain
-All audio processing is performed in **64-bit double-precision floating point** to maintain a dynamic range far exceeding human hearing and the DAC's capabilities. 
-- **Processing Order**: `DCBlock` -> `PreAmp` -> `10-Band EQ` -> `UltraSpatial / Resonance 3D` -> `PostAmp` -> `Limiter` -> `Dither`.
-- **Dithering**: Uses a TPDF TPDF noise-shaping algorithm for transparent bit-depth reduction from 64-bit to the DAC's native format (24/32-bit).
-
-### 2. Linux Kernel USBFS Driver
+## Asynchronous Streaming Engine
+HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticated **Asynchronous Multi-Threaded Architecture**:
+1.  **JNI Bridge**: Acts as the high-speed gateway between the Kotlin and the C++ core. It orchestrates real-time callbacks.
+2.  **HyperDecoder Thread**: A dedicated native thread running with **Real-Time Priority** and **CPU core affinity** (audio thread pinning)  to eliminate context-switching jitter during heavy system load.
+3.  **Shared Ring Buffer**: A high-capacity asynchronous bridge that decouples production from consumption. It ensures glitch-free playback even during system-level interrupts.
+4.  **Path-Specific Optimization**:
+    *   **Bluetooth/Shared Path**: Pulls from the ring buffer into an **AAudio stream**, routing through the Android AudioFlinger mixer.
+    *   **Exclusive USB Path**: Communicates directly with USB hardware. Bypasses the Android ALSA mixer entirely for true bit-perfect transmission.
+      
+### 1. Linux Kernel USBFS Driver
 Bypassing the Android ALSA driver stack is achieved using the `usbfs` interface. 
 - **Direct ioctl**: The engine uses `USBDEVFS_SUBMITURB` and `USBDEVFS_REAPURB` to manage isochronous data transfers manually.
 - **Asynchronous Loop**: An asynchronous URB ring ensures that the DAC is always fed with data, even if the primary decoder thread is momentarily delayed.
@@ -29,28 +38,19 @@ To account for clock drift between the Android device's crystal oscillator and t
 - **Async Feedback**: The engine listens to the UAC2 Feedback endpoint.
 - **EMA Algorithm**: An Exponential Moving Average filters the raw feedback data to calculate a stable, jitter-free target sample rate.
 - **Micro-Scaling**: The streamer dynamically adjusts the number of samples per packet (e.g., sending 6.0001 samples on average) to keep the native ring buffer at an ideal 50% fill ratio.
+  
+### 2. High-Fidelity DSP Chain
+All audio processing is performed in **64-bit double-precision floating point** to maintain a dynamic range far exceeding human hearing and the DAC's capabilities. 
+- **Processing Order**: `DCBlock` -> `PreAmp` -> `10-Band EQ` -> `PostAmp` -> `Limiter` -> `Dither`.
+- **Dithering**: Uses a TPDF TPDF noise-shaping algorithm for transparent bit-depth reduction from 64-bit to the DAC's native format (24/32-bit).
 
 ### 4. Real-Time Hardening
 To prevent audio clicks during system-wide activity:
 - **Thread Priority**: The native engine thread is assigned `SCHED_FIFO` priority.
 - **Core Affinity**: The engine utilizes to pin high-performance threads cpu pinning to the processor's core and with aquired Wakelock to ensure audio streaming over lock screen.
 
-## Asynchronous Streaming Engine
-HyperSonus achieves glitch-free, ultra-low-latency playback using a sophisticated **Asynchronous Multi-Threaded Architecture**:
-1.  **JNI Bridge**: Acts as the high-speed gateway between the Kotlin and the C++ core. It orchestrates real-time callbacks.
-2.  **HyperDecoder Thread**: A dedicated native thread running with **Real-Time Priority** and **CPU core affinity** (audio thread pinning)  to eliminate context-switching jitter during heavy system load.
-3.  **Shared Ring Buffer**: A high-capacity asynchronous bridge that decouples production from consumption. It ensures glitch-free playback even during system-level interrupts.
-4.  **Path-Specific Optimization**:
-    *   **Bluetooth/Shared Path**: Pulls from the ring buffer into an **AAudio stream**, routing through the Android AudioFlinger mixer.
-    *   **Exclusive USB Path**: Communicates directly with USB hardware. Bypasses the Android ALSA mixer entirely for true bit-perfect transmission.
 ---
 
-## Core Philosophy: Bit-Perfect Audio & USB Exclusive Mode
-Standard Android playback often resamples audio to 48kHz, degrading high-resolution source material. HyperSonus v6 introduces two high-fidelity paths:
-- **USB Exclusive Mode (Bulk Engine)**: Built a custom USB driver that communicates directly with USB DACs bypassing the Android audio stack entirely for ultra-low jitter audio streaming.
-- **Bit-Perfect (Oboe/AAudio)**: Requests **Exclusive Mode** to bypass the system mixer while using standard Android audio drivers.
-
----
 ## Architecture & Engineering
 ### 1. Multi-Engine Architecture
 Hypersonus provides allowing the app to switch between three distinct backends:
