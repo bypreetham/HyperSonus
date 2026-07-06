@@ -2,18 +2,15 @@
 
 HyperSonus is a Low level high quality Android music player designed for Music artists, Music producers, and audiophiles who demand the highest possible audio fidelity. It bypasses conventional Android audio limitations through a custom-built native engine, offering true Bit-Perfect playback, advanced DAC integration, and a high-performance DSP pipeline.
 
+# HyperSonus Technical Architecture Diagram
+The following diagram illustrates the data flow from the Android Application layer down to the USB DAC hardware, details the custom kernel-bypass drivers, the 64-bit DSP pipeline, and the asynchronous feedback mechanisms used to achieve bit-perfect high-resolution audio also highlighting both the Shared (Bluetooth) and Exclusive (USB) pathways.
+
+![HyperSonus Technical Architecture](./hypersonus-architecture.png)
+
 ## Core Philosophy: Bit-Perfect Audio & USB Exclusive Mode
 Standard Android playback often resamples audio to 48kHz, degrading high-resolution source material. HyperSonus v6 introduces two high-fidelity paths:
 - **USB Exclusive Mode (Bulk Engine)**: Built a custom USB driver that communicates directly with USB DACs bypassing the Android audio stack entirely for ultra-low jitter audio streaming.
 - **Bit-Perfect (Oboe/AAudio)**: Requests **Exclusive Mode** to bypass the system mixer while using standard Android audio drivers.
-
-# HyperSonus Technical Architecture Diagram
-This document provides a deep-dive into the architecture of the HyperSonus audio. It details the custom kernel-bypass drivers, the 64-bit DSP pipeline, and the asynchronous feedback mechanisms used to achieve bit-perfect high-resolution audio.
-The following diagram illustrates the data flow from the Android Application layer down to the USB DAC hardware, highlighting both the Shared (Bluetooth) and Exclusive (USB) pathways.
-
-![HyperSonus Technical Architecture](./hypersonus-architecture.png)
-
-
 ## Core Technical Pillars
 
 ### 1. Asynchronous Streaming Engine
