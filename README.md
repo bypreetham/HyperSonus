@@ -2,7 +2,7 @@
 
 HyperSonus is a Low level high quality Android music player designed for Music artists, Music producers, and audiophiles who demand the highest possible audio fidelity. It bypasses conventional Android audio limitations through a custom-built native engine, offering true Bit-Perfect playback, advanced DAC integration, and a high-performance DSP pipeline.
 
-# HyperSonus Technical Architecture Diagram
+# HyperSonus Architecture 
 The following diagram illustrates the data flow from the Android Application layer down to the USB DAC hardware, details the custom kernel-bypass drivers, the 64-bit DSP pipeline, and the asynchronous feedback mechanisms used to achieve bit-perfect high-resolution audio also highlighting both the Shared (Bluetooth) and Exclusive (USB) pathways.
 
 ![HyperSonus Architecture](./hypersonus-architecture.png)
