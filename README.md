@@ -1,4 +1,4 @@
-# HyperSonus: Hi-Res Bit-Perfect Spatial Audio Player
+# HyperSonus: Hi-Res Bit-Perfect USB Audio Player
 - Native Android Bit-Perfect Audio Player
 - Uses C++ Decoding and Custom USB streaming engine for USB DAC output. 
 
@@ -152,6 +152,16 @@ Crossfade)       (Bit-perfect DAC) (Media Controls)   Headset plug, Phone)
   - Fetches personalized time-of-day candidates matching target loudness (`getMoodCandidates`).
 - **PlayHistoryDao**: Records playback history and timestamps to track most-played songs and recently played artists.
 - **FavoriteDao & FolderDao**: Fast lookups for favorited songs and directory-based file browsing.
+  ### DTO & Domain Model Layer
+- **Domain Models (`Song`, `PlaylistWithCount`, `SmartMix`)**:
+  - `Song`: Clean, immutable domain model used by the UI, `MusicService`, and the audio playback engine. Decouples application logic from database table columns.
+  - `SmartMix`: Represents dynamically generated smart playlists (e.g., *Morning Energy*, *Late Night Chill*).
+- **Entity Mappers (`toSong()` / `toEntity()`)**:
+  - Extension functions map Room entities to domain models (`SongEntity.toSong()`), converting raw database strings to `android.net.Uri` and formatting metadata.
+  - `Song.toEntity()` converts domain models back to database entities for batch insertion during scans.
+- **DTOs & Serialization (Gson)**:
+  - **Queue & Playback State Persistence**: `QueueSessionSnapshot` and `PlaybackSessionState` are serialized to JSON via Gson and saved to `SharedPreferences` so the active queue and track position survive service termination.
+  - **Custom Type Adapters**: `UriTypeAdapter` ensures safe serialization/deserialization of Android `Uri` objects across all JSON payloads.
 ---
 
 ## USB Native Streamer
@@ -181,21 +191,7 @@ Crossfade)       (Bit-perfect DAC) (Media Controls)   Headset plug, Phone)
 - UriTypeAdapter : used to handle the conversion between Uri and String for serialization and deserialization of media items.
 - ActivityUtils : checks permissions (`isBluetoothPermissionGranted`, `isNotificationPermissionGranted`, `isBatteryOptimizationIgnored`, `isStoragePermissionGranted`), resolves `mediaReadPermission`, and opens app info settings.
 - MediaFormatUtils : resolves the true audio MIME type from a URI via ContentResolver, extension matching (`.m4a`, `.mp4`, `.alac`, `.aif`, `.aiff`), and `MediaExtractor` probing.
-
-
-
-### DTO & Domain Model Layer
-- **Domain Models (`Song`, `PlaylistWithCount`, `SmartMix`)**:
-  - `Song`: Clean, immutable domain model used by the UI, `MusicService`, and the audio playback engine. Decouples application logic from database table columns.
-  - `SmartMix`: Represents dynamically generated smart playlists (e.g., *Morning Energy*, *Late Night Chill*).
-- **Entity Mappers (`toSong()` / `toEntity()`)**:
-  - Extension functions map Room entities to domain models (`SongEntity.toSong()`), converting raw database strings to `android.net.Uri` and formatting metadata.
-  - `Song.toEntity()` converts domain models back to database entities for batch insertion during scans.
-- **DTOs & Serialization (Gson)**:
-  - **Queue & Playback State Persistence**: `QueueSessionSnapshot` and `PlaybackSessionState` are serialized to JSON via Gson and saved to `SharedPreferences` so the active queue and track position survive service termination.
-  - **External / Online Playlists**: Models like `SavedOnlinePlaylist` and `ExtensionSource` parse and cache online playlist data (e.g., Spotify imports).
-  - **Custom Type Adapters**: `UriTypeAdapter` ensures safe serialization/deserialization of Android `Uri` objects across all JSON payloads.
-
+---
 
 ### Playback Architecture & Audio Pathway Sinks
 
@@ -218,7 +214,7 @@ Crossfade)       (Bit-perfect DAC) (Media Controls)   Headset plug, Phone)
   - **`QueueManager`**: Single source of truth for upcoming tracks. Maintains distinct separation between the active playlist and manual user queue items ("Add to Queue" / "Play Next"), emitting reactive state flows on queue mutations.
   - **`GaplessManager`**: Coordinates predictive engine priming. Pre-loads and primes the decoder of the next track before the current song finishes. On hardware sinks subject to exclusive stream contention (such as USB DACs or exclusive Bluetooth routes), seamlessly suppresses secondary engine creation and cleanly hands over transition to `playNext()`.
   - **`MusicService`**: The centralized orchestrator connecting UI commands, MediaSession (Media3), AudioFocus, and queue change events (`onQueueChanged`) with gapless synchronization (`syncGaplessPreload`).
-
+---
 ## The Bridge connecting the Android and CPP layer
 
 The JNI (Java Native Interface) bridge serves as the high-performance communication link between Kotlin (`NativeHiResOutput`) and the native C++ audio engine.
@@ -317,12 +313,12 @@ When streaming DSD64/128/256 streams over USB without conversion to PCM, frames 
     - `skipReadbackVerify = true`: Retained for devices (e.g., FiiO JA11, KT02H20) whose firmware returns dummy values for `GET_CUR`. This prevents HyperSonus from incorrectly declaring hardware volume inert and falling back to software gain attenuation.
     - `delayAfterSetInterface = 50ms`: Retained for PLL clock lock and endpoint settling.
     - `preferBulk = true`: Retained for reliable bulk endpoint configuration.
-
+---
 - **Endpoint Optimization During Playback**:
   - Synchronous readback verification (`GET_CUR`) is bypassed after initial probe (`syncMode = false`). This prevents USB control endpoint contention and eliminates buffer underruns/clicks in the isochronous PCM audio stream.
   - In Pure Integer and Bit-Perfect modes, software gain remains locked to unity (`swGain = 1.0000`), delivering an uncompromised bit-perfect digital stream to the DAC.
 
-
+---
 ## 🛠️ Build & Development Requirements
 
 - **Android SDK**: 36 (Min SDK 26)
@@ -338,13 +334,10 @@ HyperSonus is built upon the incredible work of the open-source community. We gr
 - **[bs2b](https://bs2b.sourceforge.net/)**: The Bauer Stereophonic-to-Binaural library for fatigue-free headphone listening.
 - **Resonance Audio**: Google's high-fidelity spatial audio SDK.
 - **[Shibata](https://github.com/shibatch/SSRC)**: High-order noise-shaping dithering algorithm used for high-fidelity bit-depth conversion.
-
+---
 ## License & Proprietary Status
 
 **Proprietary License**: Free to use but no distribution and no code copying. All rights reserved.
 
-The following core components of HyperSonus are strictly proprietary and protected under this license:
-- **Native Header Files**: All C++ `.h` files defining the engine's internal structure.
-- **JNI Layer**: The `native-lib.cpp` bridge and related JNI mappings.
-- **USB Quirk Manager**: Specialized hardware-specific fixes for USB DACs.
+
 - **Architecture Plans**: All files within the `plan/` directory.
